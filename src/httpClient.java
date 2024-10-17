@@ -4,10 +4,11 @@ import java.net.Socket;
 import java.net.URL;
 
 public class httpClient {
-    public String protocol, host, filename;
-    public int port;
-    public long sleepTime = 10;
+    // Variables to store URL components
+    private String protocol, host, filename;
+    private int port;
 
+    // Constructor to initialize the HttpClient with the basic URL components
     public httpClient(int port, String protocol, String host, String filename) {
         this.port = port;
         this.protocol = protocol;
@@ -15,9 +16,11 @@ public class httpClient {
         this.filename = filename;
     }
 
+    // This method parses the given URL string and extracts its components
     public void readURL(String firstEltCommandLine) throws MalformedURLException {
         URL url = new URL(firstEltCommandLine);
         port = url.getPort();
+        // If no port is specified (port = -1), use the default port for the protocol (80 for HTTP in our case)
         if(port==-1){
             port = url.getDefaultPort();
         }
@@ -26,32 +29,37 @@ public class httpClient {
         filename = url.getFile();
     }
 
-    public void getURL() throws IOException, InterruptedException {
-        Socket socket = new Socket(host,port);
-        Thread.sleep(sleepTime);
+    // This method sends an HTTP GET request and saves the response to a file
+    public void getURL() throws IOException {
+        // Open a socket connection to the server using the extracted host and port
+        try (Socket socket = new Socket(host, port);
+             InputStream from = socket.getInputStream();                      // InputStream to read the server response
+             OutputStream output = socket.getOutputStream();
+             PrintWriter to = new PrintWriter(output, true)) {       // PrintWriter to send the HTTP request
 
-        OutputStream output = socket.getOutputStream();
-        PrintWriter to = new PrintWriter(output);
+            // getFile() actually returns the path
+            String path = filename;
 
-        to.println("GET "+ filename +" HTTP/1.1\r\n"+"Host: "+ host+"\r\n"+"User-Agent: XXX");
+            // Send the HTTP GET request
+            to.println("GET " + path + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "User-Agent: XXX\r\n\r\n");
 
-        int lastSlashIndex = filename.lastIndexOf('/');
-        String newFileName = filename.substring(lastSlashIndex+1);
-        OutputStream out = new FileOutputStream(newFileName);
-        InputStream from = socket.getInputStream();
+            // Determine the filename to save the response to
+            int lastSlashIndex = path.lastIndexOf('/');
+            String newFileName = path.substring(lastSlashIndex + 1);
 
-        byte[] buf = new byte[4096];
-        int bytes_read;
-        while((bytes_read = from.read(buf)) != -1){
-            out.write(buf,0,bytes_read);
+            // Save the response data (HTML or file content) to a local file
+            try (OutputStream out = new FileOutputStream(newFileName)) {
+                byte[] buf = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = from.read(buf)) != -1) {
+                    out.write(buf, 0, bytesRead);
+                }
+            }
         }
-
-        to.close();
-        out.close();
-        socket.close();
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
+        // Initialize empty variables for HttpClient
         String initiateProtocol = "";
         String initiateHost = "";
         int initiateHttpPort = 0;

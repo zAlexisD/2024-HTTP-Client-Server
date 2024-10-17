@@ -19,14 +19,13 @@ Run the httpClient Class with entry :
 ````
 http://faqs.org/rfcs/rfc2068.html
 ````
+### Dependencies
+Note that starting from the Open JDK 20, the URL Class is deprecated but
+the code still works. 
 ### Work in Progress
-* For now, the GET request seems to work, but we only have the 
-__204 No Content__ statue so the returned file is empty.
-
-* We should also consider adding the error message if the statue is not __200 OK__.
-
+* We should consider adding the error message if the statue is not __200 OK__.
 
 ## License
 This project is licensed under the [MIT License](LICENSE.md).
 
-**Note: This project is an academic exercise and was developed for educational purposes as part of the curriculum at ENSEA.**
+**This project is an academic exercise and was developed for educational purposes as part of the curriculum at ENSEA.**
